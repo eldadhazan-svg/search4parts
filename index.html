@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>חלפים בעולם</title>
+<meta name="theme-color" content="#0A5C7A">
+<meta name="description" content="חיפוש חלפי רכב באתרים בחו״ל לפי מספר רכב, מק״ט או תיאור, והשוואת עלות בשקלים.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="חלפים">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Secular+One&display=swap">
+<style>
+/* Layout: one-column workshop sheet. Search panel on top, exact query as a hang tag, source list, then an offer comparison table. */
+:root{
+  --bg:#EDF0F2;
+  --surface:#FFFFFF;
+  --ink:#13212B;
+  --muted:#52636F;
+  --line:#CBD3D9;
+  --accent:#0A5C7A;
+  --accent-ink:#FFFFFF;
+  --tag:#F3C316;
+  --tag-ink:#2A2200;
+  --good:#1F7A4D;
+  --warn:#8A5200;
+  --field:#F7F9FA;
+  --f-display:"Secular One","Assistant",system-ui,sans-serif;
+  --f-body:"Assistant",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1519;--surface:#16212A;--ink:#E6EDF1;--muted:#98A8B3;--line:#2B3A45;
+    --accent:#4FB8DB;--accent-ink:#06222C;--tag:#F3C316;--tag-ink:#1E1900;
+    --good:#5CC48F;--warn:#E0A23B;--field:#0F1A21;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1519;--surface:#16212A;--ink:#E6EDF1;--muted:#98A8B3;--line:#2B3A45;
+  --accent:#4FB8DB;--accent-ink:#06222C;--tag:#F3C316;--tag-ink:#1E1900;
+  --good:#5CC48F;--warn:#E0A23B;--field:#0F1A21;color-scheme:dark;
+}
+*{box-sizing:border-box}
+:root{color-scheme:light}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1040px;margin-inline:auto;display:flex;flex-direction:column;gap:28px}
+h1,h2{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.1rem,6vw,3.3rem);line-height:1.05;letter-spacing:-.01em}
+h2{font-size:1.45rem;line-height:1.2}
+p{margin:0}
+.lede{color:var(--muted);max-width:60ch;margin-top:10px;font-size:1.05rem}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.panel-pad{padding:20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+label,.lbl{font-size:.88rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+input[type=text],input[type=number],select{
+  width:100%;min-width:0;font:inherit;color:var(--ink);background:var(--field);
+  border:1px solid var(--line);border-radius:4px;padding:10px 12px;min-height:44px;
+}
+input::placeholder{color:var(--muted);opacity:.8}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ltr{direction:ltr;text-align:left;font-family:var(--f-mono)}
+.grid-4{display:grid;grid-template-columns:2fr 1.4fr 1.4fr .8fr;gap:12px}
+.grid-4>div{min-width:0}
+@media (max-width:720px){.grid-4{grid-template-columns:1fr 1fr}.grid-4>div:first-child{grid-column:1/-1}}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--field)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{margin:0;padding:10px 16px;cursor:pointer;color:var(--ink);font-size:.95rem;border-inline-start:1px solid var(--line)}
+.seg label:first-of-type{border-inline-start:0}
+.seg input:checked+label{background:var(--accent);color:var(--accent-ink)}
+.seg input:focus-visible+label{outline:3px solid var(--accent);outline-offset:-3px}
+.check{display:flex;align-items:center;gap:8px;font-size:.92rem;color:var(--muted);margin:0;font-weight:400}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.btn{
+  font:inherit;font-weight:700;cursor:pointer;border-radius:4px;min-height:44px;padding:9px 18px;
+  border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);
+  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{min-height:36px;padding:5px 12px;font-size:.9rem}
+.btn:hover{filter:brightness(1.08)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.grow{flex:1 1 220px;min-width:0}
+
+/* hang tag: the exact text sent to each site */
+.tag{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  background:var(--tag);color:var(--tag-ink);border-radius:4px;padding:12px 16px;
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%);
+}
+.tag .tag-k{font-size:.78rem;font-weight:700;letter-spacing:.06em}
+.tag .tag-v{font-family:var(--f-mono);font-size:1.05rem;font-weight:500;direction:ltr;overflow-wrap:anywhere;min-width:0;flex:1 1 200px;text-align:left}
+.tag button{background:var(--tag-ink);color:var(--tag);border:0;border-radius:4px;min-height:36px;padding:4px 14px;font:inherit;font-weight:700;cursor:pointer}
+.warn{color:var(--warn);font-size:.92rem;margin-top:10px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font:inherit;font-size:.92rem;cursor:pointer;color:var(--ink);background:transparent;
+  border:1px solid var(--line);border-radius:999px;padding:6px 14px;min-height:36px;
+}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.recent{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.recent .chip{font-size:.85rem;color:var(--muted)}
+.recent .chip .m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+
+.sources{list-style:none;margin:0;padding:0}
+.src{display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center;padding:16px 20px;border-top:1px solid var(--line)}
+.src:first-child{border-top:0}
+.src-name{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.src-name strong{font-size:1.1rem}
+.src-name .host{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);direction:ltr}
+.pill{font-size:.75rem;font-weight:700;letter-spacing:.04em;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
+.src-note{color:var(--muted);font-size:.93rem;margin-top:2px}
+.src-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.src-actions .via{font-size:.82rem;color:var(--muted)}
+@media (max-width:620px){.src{grid-template-columns:1fr}}
+.empty{padding:28px 20px;color:var(--muted)}
+
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th{font-size:.82rem;color:var(--muted);text-align:start;font-weight:600;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td input,td select{min-height:40px;padding:6px 8px}
+td .num{direction:ltr;text-align:left;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td.landed{font-variant-numeric:tabular-nums;white-space:nowrap;padding-inline:12px}
+td.landed strong{font-size:1.05rem}
+tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
+.best-b{display:inline-block;margin-inline-start:8px;font-size:.75rem;font-weight:700;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:0 8px}
+.x{background:transparent;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer;min-width:36px;min-height:36px;border-radius:4px}
+.x:hover{color:var(--ink)}
+.settings{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+@media (max-width:720px){.settings{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hint{color:var(--muted);font-size:.9rem}
+.notes{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:8px}
+.notes li{max-width:70ch}
+.section-head{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+@media (prefers-reduced-motion:no-preference){.btn,.chip{transition:background .15s,color .15s}}
+
+/* plate lookup */
+.plate-box{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.plate{display:inline-flex;direction:ltr;border:2px solid #111;border-radius:6px;overflow:hidden;background:#F5C400;height:52px;min-width:0}
+.plate .il{background:#0B3FA8;color:#fff;font:700 .7rem/1.1 var(--f-mono);display:flex;align-items:center;justify-content:center;padding:0 8px;letter-spacing:.04em}
+.plate input{border:0;background:transparent;color:#111;font:500 1.6rem var(--f-mono);letter-spacing:.14em;width:11ch;min-height:0;padding:0 12px;text-align:center;border-radius:0}
+.plate input::placeholder{color:#111;opacity:.35}
+.plate:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.plate input:focus-visible{outline:0}
+#plate-status{font-size:.92rem;min-height:1.4em;color:var(--muted)}
+#plate-status.err{color:var(--warn)}
+#plate-status.ok{color:var(--good)}
+.vcard{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 20px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:var(--field)}
+.vcard div{min-width:0}
+.vcard dt{font-size:.78rem;font-weight:600;color:var(--muted)}
+.vcard dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+.vcard dd.m{font-family:var(--f-mono);direction:ltr;text-align:right;font-weight:500}
+.vcard button{font:inherit;font-size:.78rem;margin-inline-start:6px;border:1px solid var(--line);background:transparent;color:var(--accent);border-radius:4px;cursor:pointer;padding:0 6px}
+.paste textarea{width:100%;min-height:90px;font:.85rem var(--f-mono);direction:ltr;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px}
+.paste summary{cursor:pointer;color:var(--accent);font-size:.9rem}
+.own summary{cursor:pointer;font-weight:600}
+.own .settings{margin-top:12px}
+.own .tpl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+.own .tpl>div{min-width:0}
+#disclosure{font-size:.88rem}
+</style>
+</head>
+<body>
+
+<main class="wrap" dir="rtl" lang="he">
+
+<header>
+  <h1>חלפים בעולם</h1>
+  <p class="lede">מזינים מק״ט או תיאור חלק ודגם רכב. מקבלים קישורי חיפוש מוכנים לאתרי חלפים בחו״ל, ומחשבים כמה ההצעה עולה בשקלים עד הבית.</p>
+</header>
+
+<section class="panel panel-pad stack" aria-labelledby="h-search">
+  <h2 id="h-search">מה מחפשים?</h2>
+  <div class="stack" id="plate-wrap">
+    <div class="plate-box">
+      <div>
+        <label for="plate">מספר רכב</label>
+        <div class="plate"><span class="il">IL</span><input type="text" id="plate" inputmode="numeric" maxlength="10" placeholder="12-345-67" autocomplete="off" aria-describedby="plate-status"></div>
+      </div>
+      <button type="button" class="btn" id="plate-go">מלא פרטי רכב</button>
+      <label class="check" for="inc-eng"><input type="checkbox" id="inc-eng">הוסף קוד מנוע לחיפוש</label>
+    </div>
+    <p id="plate-status" role="status" aria-live="polite">הנתונים נמשכים ממאגר הרכבים הפתוח של משרד התחבורה (data.gov.il).</p>
+    <dl class="vcard" id="vcard" hidden></dl>
+    <details class="paste" id="paste">
+      <summary>הקריאה לא עובדת? הדביקו כאן את תשובת ה‑API</summary>
+      <p class="hint" style="margin:8px 0">פתחו את הקישור שמופיע אחרי הלחיצה על "מלא פרטי רכב", העתיקו את כל הטקסט והדביקו כאן.</p>
+      <textarea id="paste-ta" aria-label="תשובת API" spellcheck="false"></textarea>
+      <div class="row" style="margin-top:8px"><button type="button" class="btn ghost small" id="paste-go">השתמש בנתונים</button><a id="api-link" class="hint ltr" href="#" target="_blank" rel="noopener noreferrer" hidden>פתח את ה‑API</a></div>
+    </details>
+  </div>
+
+  <form id="f" class="stack" autocomplete="off">
+    <div>
+      <span class="lbl">סוג החיפוש</span>
+      <div class="seg" role="radiogroup" aria-label="סוג החיפוש">
+        <input type="radio" name="mode" id="m-desc" value="desc" checked><label for="m-desc">לפי תיאור חלק</label>
+        <input type="radio" name="mode" id="m-pn" value="pn"><label for="m-pn">לפי מק״ט יצרן</label>
+      </div>
+    </div>
+
+    <div id="box-pn" hidden class="row">
+      <div class="grow">
+        <label for="pn">מק״ט יצרן (OEM)</label>
+        <input type="text" id="pn" class="ltr" placeholder="04465-02220" spellcheck="false" autocapitalize="characters">
+      </div>
+      <label class="check" for="strip"><input type="checkbox" id="strip">להסיר מקפים ורווחים</label>
+    </div>
+
+    <div id="box-desc" class="grid-4">
+      <div>
+        <label for="part">החלק</label>
+        <input type="text" id="part" placeholder="למשל: רפידות בלם קדמיות, או brake pads">
+      </div>
+      <div>
+        <label for="make">יצרן</label>
+        <input type="text" id="make" list="makes" placeholder="טויוטה">
+        <datalist id="makes">
+          <option value="טויוטה"><option value="הונדה"><option value="מזדה"><option value="יונדאי"><option value="קיה">
+          <option value="סקודה"><option value="פולקסווגן"><option value="סוזוקי"><option value="ניסאן"><option value="מיצובישי">
+          <option value="סובארו"><option value="פורד"><option value="שברולט"><option value="פיג'ו"><option value="סיטרואן">
+          <option value="רנו"><option value="דאצ'יה"><option value="ב.מ.וו"><option value="מרצדס"><option value="אאודי">
+          <option value="וולוו"><option value="טסלה"><option value="סיאט"><option value="אופל"><option value="פיאט">
+          <option value="ג'יפ"><option value="לנד רובר"><option value="פורשה"><option value="מיני">
+        </datalist>
+      </div>
+      <div>
+        <label for="model">דגם</label>
+        <input type="text" id="model" class="ltr" placeholder="Corolla" spellcheck="false">
+      </div>
+      <div>
+        <label for="year">שנה</label>
+        <input type="number" id="year" class="ltr" inputmode="numeric" min="1960" max="2030" placeholder="2018">
+      </div>
+    </div>
+
+    <div class="row">
+      <button type="submit" class="btn">חפשו באתרים</button>
+      <span class="hint">אפשר לכתוב בעברית. המונחים הנפוצים מתורגמים לאנגלית אוטומטית.</span>
+    </div>
+  </form>
+
+  <div id="recent-wrap" class="recent" hidden>
+    <span class="hint">חיפושים אחרונים:</span>
+    <span id="recent" class="recent"></span>
+  </div>
+</section>
+
+<section aria-labelledby="h-pn" class="panel panel-pad stack">
+  <div>
+    <h2 id="h-pn">שלב 1: למצוא את המק״ט</h2>
+    <p class="hint" style="margin-top:6px">מק״ט יצרן מדויק מונע טעויות התאמה בין דגמים ושנים. השתמשו בקישורים כדי למצוא אותו, והדביקו אותו כאן. המק״ט מופיע לרוב גם על החלק הישן.</p>
+  </div>
+  <ul class="sources" id="pn-links" style="border:1px solid var(--line);border-radius:6px"></ul>
+  <div class="row">
+    <div class="grow">
+      <label for="found-pn">המק״ט שמצאתי</label>
+      <input type="text" id="found-pn" class="ltr" placeholder="לדוגמה: 51881234" spellcheck="false" autocapitalize="characters">
+    </div>
+    <div id="qmode-box" hidden>
+      <span class="lbl">חיפוש בשלב 2 לפי</span>
+      <div class="seg" role="radiogroup" aria-label="חיפוש לפי">
+        <input type="radio" name="qmode" id="q-pn" value="pn" checked><label for="q-pn">מק״ט בלבד</label>
+        <input type="radio" name="qmode" id="q-both" value="both"><label for="q-both">שם ומק״ט</label>
+        <input type="radio" name="qmode" id="q-name" value="name"><label for="q-name">שם בלבד</label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-res">
+  <div class="section-head">
+    <h2 id="h-res">שלב 2: חיפוש באתרים</h2>
+    <div class="chips" id="regions" role="group" aria-label="סינון לפי אזור">
+      <button type="button" class="chip" data-r="all" aria-pressed="true">הכול</button>
+      <button type="button" class="chip" data-r="us" aria-pressed="false">ארה״ב</button>
+      <button type="button" class="chip" data-r="eu" aria-pressed="false">אירופה</button>
+      <button type="button" class="chip" data-r="asia" aria-pressed="false">אסיה</button>
+      <button type="button" class="chip" data-r="global" aria-pressed="false">גלובלי</button>
+    </div>
+  </div>
+
+  <div class="tag" id="tag" hidden>
+    <span class="tag-k">נשלח לאתרים</span>
+    <span class="tag-v" id="qtext"></span>
+    <button type="button" id="copy">העתק</button>
+  </div>
+  <p class="warn" id="warn" hidden></p>
+
+  <div class="panel" style="margin-top:14px">
+    <ul class="sources" id="sources"></ul>
+  </div>
+</section>
+
+<section aria-labelledby="h-cmp" class="panel panel-pad stack">
+  <div>
+    <h2 id="h-cmp">השוואת הצעות בשקלים</h2>
+    <p class="hint" style="margin-top:6px">מוצאים הצעה באתר? מזינים אותה כאן ורואים את העלות המשוערת עד לישראל. השורות הראשונות הן דוגמה.</p>
+  </div>
+
+  <div class="settings">
+    <div><label for="r-usd">שער דולר</label><input type="number" id="r-usd" class="ltr" step="0.01" min="0"></div>
+    <div><label for="r-eur">שער יורו</label><input type="number" id="r-eur" class="ltr" step="0.01" min="0"></div>
+    <div><label for="r-gbp">שער לירה שטרלינג</label><input type="number" id="r-gbp" class="ltr" step="0.01" min="0"></div>
+    <div><label for="duty">מכס (%)</label><input type="number" id="duty" class="ltr" step="0.5" min="0"></div>
+    <div><label for="vat">מע״מ (%)</label><input type="number" id="vat" class="ltr" step="0.5" min="0"></div>
+  </div>
+  <p class="hint">שערי ההתחלה וה‑% הם ערכי הנחה. עדכנו אותם לשער היום ולשיעורים שחלים על החלק שלכם. החישוב הוא הערכה ולא מחליף בדיקה מול חברת השילוח או רשות המסים.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>אתר</th><th>מחיר</th><th>מטבע</th><th>משלוח</th><th>מצב</th><th>עלות בשקלים</th><th><span class="sr" style="position:absolute;opacity:0">הסרה</span></th>
+      </tr></thead>
+      <tbody id="offers"></tbody>
+    </table>
+  </div>
+  <p class="hint" id="offers-empty" hidden>עוד אין הצעות. הוסיפו שורה ותזינו מה שמצאתם.</p>
+  <div class="row">
+    <button type="button" class="btn ghost small" id="add">הוסף הצעה</button>
+    <button type="button" class="btn ghost small" id="clear">נקה הכול</button>
+  </div>
+</section>
+
+<p class="hint" id="disclosure" hidden>חלק מהקישורים באתר הם קישורי שותפים. אם תקנו דרכם ייתכן שאקבל עמלה מהאתר, והמחיר שלכם לא משתנה.</p>
+
+<section class="panel panel-pad own" id="own-sec" aria-labelledby="h-own" hidden>
+  <details id="own">
+    <summary id="h-own">הגדרות שותפים (לבעל האפליקציה)</summary>
+    <p class="hint" style="margin-top:10px">מדביקים את המזהים שקיבלתם מתוכניות השותפים. הם נשמרים בדפדפן הזה בלבד. כדי שכל המשתמשים יראו קישורים על שמכם, העתיקו את ההגדרות ושלחו לי, ואשבץ אותם בקוד.</p>
+    <div class="settings">
+      <div><label for="a-ebay">eBay: Campaign ID</label><input type="text" id="a-ebay" class="ltr" placeholder="5338xxxxxx" spellcheck="false"></div>
+      <div><label for="a-amzcom">Amazon.com: Tracking ID</label><input type="text" id="a-amzcom" class="ltr" placeholder="name-20" spellcheck="false"></div>
+      <div><label for="a-amzde">Amazon.de: Tracking ID</label><input type="text" id="a-amzde" class="ltr" placeholder="name-21" spellcheck="false"></div>
+    </div>
+    <p class="hint" style="margin-top:12px">אתרים אחרים: קישור שותף עם <span class="ltr">{url}</span> במקום הכתובת היעד, כפי שמופיע בפורטל השותפים של האתר.</p>
+    <div class="tpl">
+      <div><label for="t-aliexpress">AliExpress</label><input type="text" id="t-aliexpress" class="ltr" placeholder="https://…{url}" spellcheck="false"></div>
+      <div><label for="t-alibaba">Alibaba</label><input type="text" id="t-alibaba" class="ltr" placeholder="https://…{url}" spellcheck="false"></div>
+      <div><label for="t-autodoc">Autodoc</label><input type="text" id="t-autodoc" class="ltr" placeholder="https://…{url}" spellcheck="false"></div>
+      <div><label for="t-rockauto">RockAuto</label><input type="text" id="t-rockauto" class="ltr" placeholder="https://…{url}" spellcheck="false"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn ghost small" id="a-copy">העתק הגדרות</button><span class="hint" id="a-msg" role="status"></span></div>
+  </details>
+</section>
+
+<section aria-labelledby="h-n" class="panel panel-pad stack">
+  <h2 id="h-n">לפני שמזמינים</h2>
+  <ul class="notes">
+    <li>מק״ט יצרן נותן התאמה מדויקת. מחפשים אותו על החלק הישן, בספר הרכב או בסוכנות.</li>
+    <li>לא כל אתר שולח לישראל. בודקים בעמוד התשלום, או מזמינים למשלח (forwarder) בארה״ב או באירופה.</li>
+    <li>בחלקי בטיחות כמו בלמים והיגוי קונים ממוכר מוכר, עם אפשרות החזרה.</li>
+    <li>אם קישור ישיר לא מציג תוצאות, הכפתור &quot;דרך גוגל&quot; מחפש בתוך אותו אתר.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var $ = function(id){return document.getElementById(id)};
+  var STORE = 'halafim.v1';
+
+  /* ---------- dictionaries (Hebrew -> English search terms) ---------- */
+  var PARTS = {
+    'רפידות בלם':'brake pads','רפידות':'brake pads','דיסקי בלם':'brake discs','דיסקים':'brake discs','דיסק בלם':'brake disc',
+    'צלחות בלם':'brake discs','קליפר':'brake caliper','צינור בלם':'brake hose','נוזל בלמים':'brake fluid',
+    'מסנן שמן':'oil filter','פילטר שמן':'oil filter','מסנן אוויר':'air filter','פילטר אוויר':'air filter',
+    'מסנן מזגן':'cabin filter','פילטר מזגן':'cabin filter','מסנן דלק':'fuel filter','פילטר דלק':'fuel filter',
+    'מצתים':'spark plugs','מצת':'spark plug','פלאג':'spark plug','סליל הצתה':'ignition coil','סלילי הצתה':'ignition coils',
+    'משאבת מים':'water pump','משאבת דלק':'fuel pump','משאבת הגה':'power steering pump','משאבת שמן':'oil pump',
+    'רצועת תזמון':'timing belt','סט תזמון':'timing belt kit','שרשרת תזמון':'timing chain','רצועה':'drive belt',
+    'בולם זעזועים':'shock absorber','בולמי זעזועים':'shock absorbers','בולם':'shock absorber','בולמים':'shock absorbers',
+    'קפיץ':'coil spring','קפיצים':'coil springs','זרוע':'control arm','זרועות':'control arms',
+    'מוט מייצב':'sway bar link','מייצב':'sway bar link','ראש הגה':'tie rod end','קצה הגה':'tie rod end','מוט הגה':'tie rod',
+    'מיסב גלגל':'wheel bearing','מסב גלגל':'wheel bearing','מיסב':'bearing','בושינג':'bushing','תותב':'bushing',
+    'מצבר':'battery','מצמד':'clutch kit','גלגל תנופה':'flywheel','תיבת הילוכים':'gearbox','נוזל תיבה':'transmission fluid',
+    'רדיאטור':'radiator','מאוורר רדיאטור':'radiator fan','מאוורר':'cooling fan','תרמוסטט':'thermostat',
+    'מדחס מזגן':'AC compressor','מדחס':'AC compressor','מעבה':'AC condenser','אלטרנטור':'alternator','סטרטר':'starter motor',
+    'מנוע התנעה':'starter motor','חיישן חמצן':'oxygen sensor','למבדה':'oxygen sensor','חיישן':'sensor',
+    'חיישן abs':'ABS sensor','חיישן ABS':'ABS sensor','פנס קדמי':'headlight','פנס אחורי':'tail light','פנס אחרוי':'tail light','פנס אחורית':'tail light','פנס ערפל':'fog light','פנס בלם':'brake light','איתות':'turn signal',
+    'מראה צד':'side mirror','מראה':'mirror','מגבים':'wiper blades','מגב':'wiper blade','פגוש':'bumper',
+    'ציר הנעה':'CV axle','כונן':'CV axle','משולש':'control arm','מזרק':'fuel injector','מזרקים':'fuel injectors',
+    'טורבו':'turbocharger','אטם ראש':'head gasket','אטם':'gasket','כרית מנוע':'engine mount','בסיס מנוע':'engine mount',
+    'קטליזטור':'catalytic converter','משתיק קול':'muffler','אגזוז':'exhaust','צילינדר מצמד':'clutch slave cylinder',
+    'שמן מנוע':'engine oil','קדמיות':'front','קדמי':'front','קדמית':'front','אחוריות':'rear','אחורי':'rear','אחורית':'rear',
+    'ימין':'right','שמאל':'left','ימני':'right','ימנית':'right','שמאלי':'left','שמאלית':'left','אחרוי':'rear','אחרוית':'rear','צד נהג':'left','צד נוסע':'right'
+  };
+  var MAKES = {
+    'טויוטה':'Toyota','הונדה':'Honda','מזדה':'Mazda','יונדאי':'Hyundai','קיה':'Kia','סקודה':'Skoda','פולקסווגן':'Volkswagen',
+    'סוזוקי':'Suzuki','ניסאן':'Nissan','מיצובישי':'Mitsubishi','סובארו':'Subaru','פורד':'Ford','שברולט':'Chevrolet',
+    "פיג'ו":'Peugeot','סיטרואן':'Citroen','רנו':'Renault',"דאצ'יה":'Dacia','ב.מ.וו':'BMW','במוו':'BMW','מרצדס':'Mercedes-Benz',
+    'אאודי':'Audi','וולוו':'Volvo','טסלה':'Tesla','סיאט':'Seat','אופל':'Opel','פיאט':'Fiat',"ג'יפ":'Jeep','לנד רובר':'Land Rover',
+    'פורשה':'Porsche','מיני':'Mini'
+  };
+  var ALL = {}; var k;
+  for(k in PARTS) ALL[k]=PARTS[k];
+  for(k in MAKES) ALL[k]=MAKES[k];
+  var KEYS = Object.keys(ALL).sort(function(a,b){return b.length-a.length});
+  var KEYRE = KEYS.map(function(key){
+    return {k:key, re:new RegExp('(^|[\\s,])ה?'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=$|[\\s,])','g')};
+  });
+
+  function norm(s){
+    return String(s||'').replace(/[״“”]/g,'"').replace(/[׳‘’]/g,"'").replace(/\s+/g,' ').trim();
+  }
+  function translate(s){
+    var t=' '+norm(s)+' ';
+    KEYRE.forEach(function(o){
+      t=t.replace(o.re,function(m,p){return p+ALL[o.k]+' '});
+    });
+    t=t.replace(/\s+/g,' ').trim();
+    var left=t.match(/[֐-׿][֐-׿'"]*/g)||[];
+    return {text:t,left:left};
+  }
+
+  /* ---------- sources ---------- */
+  function enc(s){return encodeURIComponent(s)}
+  function viaGoogle(host,c){return 'https://www.google.com/search?q='+enc('site:'+host+' '+c.q)}
+  function src(name,host,region,note,direct){
+    return {name:name,host:host,region:region,note:note,direct:direct};
+  }
+  var SOURCES = [
+    src('eBay Motors','ebay.com','global','חלקים חדשים, משומשים ומפורקים. הבחירה הרחבה ביותר.',
+      function(c){return 'https://www.ebay.com/sch/i.html?_nkw='+enc(c.q)+'&_sacat=6028'}),
+    src('eBay גרמניה','ebay.de','eu','מוכרים באירופה. מתאים במיוחד לרכבים אירופיים.',
+      function(c){return 'https://www.ebay.de/sch/i.html?_nkw='+enc(c.q)}),
+    src('eBay בריטניה','ebay.co.uk','eu','חלפים לרכבים אירופיים ויפניים, כולל משומשים.',
+      function(c){return 'https://www.ebay.co.uk/sch/i.html?_nkw='+enc(c.q)}),
+    src('RockAuto','rockauto.com','us','קטלוג לפי דגם ומנוע. חלפים חדשים ואפטרמרקט.',
+      function(c){return c.mode==='pn' ? 'https://www.rockauto.com/en/partsearch/?partnum='+enc(c.q) : null}),
+    src('Amazon ארה״ב','amazon.com','us','חלפים ואביזרים. יש סינון התאמה לפי רכב בעמוד התוצאות.',
+      function(c){return 'https://www.amazon.com/s?k='+enc(c.q)}),
+    src('Amazon גרמניה','amazon.de','eu','מבחר חלפים אירופי. שווה לבדוק אם המוכר שולח לישראל.',
+      function(c){return 'https://www.amazon.de/s?k='+enc(c.q)}),
+    src('FCP Euro','fcpeuro.com','us','מתמחה ברכבים אירופיים: BMW, מרצדס, אאודי, פולקסווגן, וולוו.',null),
+    src('Pelican Parts','pelicanparts.com','us','פורשה, BMW, מרצדס ופולקסווגן, גם דגמים ותיקים.',null),
+    src('Autodoc','autodoc.co.uk','eu','אחד מקטלוגי האפטרמרקט הגדולים באירופה.',
+      function(c){return 'https://www.autodoc.co.uk/search?keyword='+enc(c.q)}),
+    src('Mister-Auto','mister-auto.com','eu','קטלוג אירופי לחלפים חדשים לרכבים נפוצים.',null),
+    src('Partsouq','partsouq.com','asia','חלפי מקור לרכבים יפניים וקוריאניים. עובד בעיקר עם מק״ט.',
+      function(c){return c.mode==='pn' ? 'https://partsouq.com/en/search/all?q='+enc(c.q) : null}),
+    src('Amayama','amayama.com','asia','חלפי מקור מיפן. עובד בעיקר עם מק״ט.',null),
+    src('AliExpress','aliexpress.com','asia','מחירים נמוכים, איכות משתנה. מומלץ לקרוא ביקורות.',
+      function(c){return 'https://www.aliexpress.com/wholesale?SearchText='+enc(c.q)}),
+    src('Alibaba','alibaba.com','asia','יצרנים וסיטונאים. מתאים לכמויות או לחלקים נדירים.',
+      function(c){return 'https://www.alibaba.com/trade/search?SearchText='+enc(c.q)}),
+    src('Google Shopping','google.com','global','השוואת מחירים בין חנויות שונות בעולם.',
+      function(c){return 'https://www.google.com/search?tbm=shop&q='+enc(c.q)})
+  ];
+  var REGION_LABEL = {us:'ארה״ב',eu:'אירופה',asia:'אסיה',global:'גלובלי'};
+
+  /* ---------- state ---------- */
+  var saved = {};
+  try{ saved = JSON.parse(localStorage.getItem(STORE)||'{}')||{} }catch(e){ saved = {} }
+  var region = 'all';
+  var baseQ = '';
+  var recent = Array.isArray(saved.recent) ? saved.recent.slice(0,6) : [];
+  var offers = Array.isArray(saved.offers) ? saved.offers : [
+    {site:'דוגמה: eBay',price:'38',cur:'USD',ship:'12',cond:'חדש'},
+    {site:'דוגמה: Autodoc',price:'31',cur:'EUR',ship:'9',cond:'חדש'}
+  ];
+  var settings = saved.settings || {usd:3.7,eur:4.3,gbp:4.9,duty:0,vat:18};
+  var DEFAULT_FORM = {mode:'desc',pn:'',strip:false,part:'רפידות בלם קדמיות',make:'טויוטה',model:'Corolla',year:'2018'};
+
+  function persist(){
+    try{
+      localStorage.setItem(STORE,JSON.stringify({recent:recent,offers:offers,settings:settings,form:readForm()}));
+    }catch(e){}
+  }
+
+  /* ---------- form ---------- */
+  function readForm(){
+    return {
+      mode: $('m-pn').checked ? 'pn' : 'desc',
+      pn: $('pn').value, strip: $('strip').checked,
+      part: $('part').value, make: $('make').value, model: $('model').value, year: $('year').value
+    };
+  }
+  function applyForm(f){
+    $('m-pn').checked = f.mode==='pn'; $('m-desc').checked = f.mode!=='pn';
+    $('pn').value=f.pn||''; $('strip').checked=!!f.strip;
+    $('part').value=f.part||''; $('make').value=f.make||''; $('model').value=f.model||''; $('year').value=f.year||'';
+    syncMode();
+  }
+  function syncMode(){
+    var pn = $('m-pn').checked;
+    $('box-pn').hidden = !pn;
+    $('box-desc').hidden = pn;
+  }
+  function build(){
+    var f = readForm();
+    if(f.mode==='pn'){
+      var pn = f.pn.trim();
+      if(f.strip) pn = pn.replace(/[\s\-.]/g,'');
+      return {mode:'pn', q:pn, left:[]};
+    }
+    var part = translate(f.part), make = translate(f.make);
+    var eng = ($('inc-eng') && $('inc-eng').checked && vehicle && vehicle.degem_manoa) ? String(vehicle.degem_manoa).trim() : '';
+    var q = [make.text, norm(f.model), String(f.year).trim(), eng, part.text].filter(Boolean).join(' ');
+    baseQ = q;
+    var fpn = ($('found-pn').value||'').trim();
+    var qmEl = document.querySelector('input[name=qmode]:checked');
+    var qm = qmEl ? qmEl.value : 'pn';
+    if(fpn){
+      if(qm==='pn') return {mode:'pn', q:fpn, left:[]};
+      if(qm==='both') q = q+' '+fpn;
+    }
+    return {mode:'desc', q:q, left:part.left.concat(make.left)};
+  }
+
+
+  function renderStep1(){
+    var fpn = ($('found-pn').value||'').trim();
+    $('qmode-box').hidden = !fpn;
+    var ul = $('pn-links');
+    if(!baseQ){ ul.innerHTML='<li class="empty">הזינו חלק ורכב כדי לקבל קישורים לאיתור מק״ט.</li>'; return; }
+    var vin = (typeof vehicle!=='undefined' && vehicle && vehicle.misgeret) ? String(vehicle.misgeret).trim() : '';
+    var items = [
+      ['גוגל: מק״ט OEM של החלק','מחפש "OEM part number" לדגם ולחלק שלכם.','https://www.google.com/search?q='+enc(baseQ+' OEM part number')],
+      ['קטלוגי חלפים (EPC)','קטלוגים עם תרשימי חלקים. אם יש מספר שלדה, כדאי להשתמש בו.','https://www.google.com/search?q='+enc(baseQ+' parts catalog diagram'+(vin?' '+vin:''))],
+      ['7zap','קטלוג חלקים חופשי עם תרשימים ומק״טים.','https://www.google.com/search?q='+enc('site:7zap.com '+baseQ)],
+      ['Autodoc','בעמוד כל מוצר מופיעים מספרי OEM תואמים.',aff('https://www.autodoc.co.uk/search?keyword='+enc(baseQ),'autodoc.co.uk')],
+      ['eBay','מוכרים רבים כותבים את מק״ט היצרן בכותרת המודעה.',aff('https://www.ebay.com/sch/i.html?_nkw='+enc(baseQ)+'&_sacat=6028','ebay.com')]
+    ];
+    ul.innerHTML = items.map(function(x){
+      return '<li class="src"><div><div class="src-name"><strong>'+x[0]+'</strong></div><p class="src-note">'+x[1]+'</p></div>'+
+        '<div class="src-actions"><a class="btn small ghost" href="'+x[2]+'" target="_blank" rel="noopener noreferrer">פתח</a></div></li>';
+    }).join('');
+  }
+
+
+  if(location.hash==='#owner'){ $('own-sec').hidden=false; }
+
+  /* ---------- affiliate links ---------- */
+  /* Shipped defaults: fill these in so every visitor gets your links. Empty = no affiliate tagging. */
+  var AFFILIATE = {ebay:'', amzcom:'', amzde:'', tpl:{aliexpress:'', alibaba:'', autodoc:'', rockauto:''}};
+  var AFF_KEY = 'halafim.aff';
+  var affLocal = {};
+  try{ affLocal = JSON.parse(localStorage.getItem(AFF_KEY)||'{}')||{} }catch(e){ affLocal = {} }
+  function affCfg(){
+    var t = {}, k;
+    for(k in AFFILIATE.tpl) t[k] = (affLocal.tpl && affLocal.tpl[k]) || AFFILIATE.tpl[k] || '';
+    return {ebay: affLocal.ebay || AFFILIATE.ebay || '', amzcom: affLocal.amzcom || AFFILIATE.amzcom || '', amzde: affLocal.amzde || AFFILIATE.amzde || '', tpl:t};
+  }
+  var EBAY_MKRID = {'ebay.com':'711-53200-19255-0','ebay.co.uk':'710-53481-19255-0','ebay.de':'707-53477-19255-0'};
+  var affUsed = false;
+  function aff(url, host){
+    if(!url) return url;
+    var c = affCfg(), out = url;
+    if(EBAY_MKRID[host] && c.ebay){
+      out = url+'&mkcid=1&mkrid='+EBAY_MKRID[host]+'&siteid=0&campid='+encodeURIComponent(c.ebay)+'&customid=&toolid=10001&mkevt=1';
+    } else if(host==='amazon.com' && c.amzcom){
+      out = url+'&tag='+encodeURIComponent(c.amzcom);
+    } else if(host==='amazon.de' && c.amzde){
+      out = url+'&tag='+encodeURIComponent(c.amzde);
+    } else {
+      var key = host.replace(/^www\./,'').split('.')[0];
+      var tpl = c.tpl[key];
+      if(tpl && tpl.indexOf('{url}')!==-1) out = tpl.replace('{url}', encodeURIComponent(url));
+    }
+    if(out!==url) affUsed = true;
+    return out;
+  }
+  var AFF_FIELDS = {'a-ebay':['ebay'],'a-amzcom':['amzcom'],'a-amzde':['amzde'],
+    't-aliexpress':['tpl','aliexpress'],'t-alibaba':['tpl','alibaba'],'t-autodoc':['tpl','autodoc'],'t-rockauto':['tpl','rockauto']};
+  Object.keys(AFF_FIELDS).forEach(function(id){
+    var path=AFF_FIELDS[id], el=$(id);
+    el.value = path.length===1 ? (affLocal[path[0]]||'') : ((affLocal.tpl||{})[path[1]]||'');
+    el.addEventListener('input',function(){
+      if(path.length===1) affLocal[path[0]]=el.value.trim();
+      else { affLocal.tpl=affLocal.tpl||{}; affLocal.tpl[path[1]]=el.value.trim(); }
+      try{ localStorage.setItem(AFF_KEY,JSON.stringify(affLocal)); }catch(e){}
+      render();
+    });
+  });
+  $('a-copy').addEventListener('click',function(){
+    var txt = JSON.stringify(affCfg());
+    var msg=$('a-msg');
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){msg.textContent='הועתק'},function(){msg.textContent=txt});
+    } else { msg.textContent=txt; }
+  });
+
+  /* ---------- results ---------- */
+  function render(){
+    var c = build(); renderStep1();
+    var tag=$('tag'), warn=$('warn'), list=$('sources');
+    if(!c.q){
+      tag.hidden=true; warn.hidden=true;
+      list.innerHTML='<li class="empty">הזינו מק״ט או תיאור חלק כדי לקבל קישורי חיפוש.</li>';
+      return;
+    }
+    tag.hidden=false; $('qtext').textContent=c.q;
+    if(c.left.length){
+      warn.hidden=false;
+      warn.textContent='לא תורגם: '+c.left.join(', ')+'. אתרים בחו״ל מבינים בעיקר אנגלית, אז כדאי לכתוב את המונחים האלה באנגלית.';
+    } else { warn.hidden=true; }
+
+    affUsed = false;
+    var html='';
+    SOURCES.forEach(function(s){
+      if(region!=='all' && s.region!==region) return;
+      var ctx={q:c.q,mode:c.mode};
+      var direct = s.direct ? aff(s.direct(ctx), s.host) : null;
+      var g = viaGoogle(s.host,ctx);
+      html+='<li class="src"><div><div class="src-name"><strong>'+s.name+'</strong>'+
+        '<span class="host">'+s.host+'</span><span class="pill">'+REGION_LABEL[s.region]+'</span></div>'+
+        '<p class="src-note">'+s.note+'</p></div><div class="src-actions">';
+      if(direct){
+        html+='<a class="btn small" href="'+direct+'" target="_blank" rel="sponsored noopener noreferrer">חיפוש באתר</a>'+
+              '<a class="btn small ghost" href="'+g+'" target="_blank" rel="noopener noreferrer">דרך גוגל</a>';
+      } else {
+        html+='<a class="btn small" href="'+g+'" target="_blank" rel="noopener noreferrer">חיפוש דרך גוגל</a>';
+      }
+      html+='</div></li>';
+    });
+    list.innerHTML = html || '<li class="empty">אין אתרים באזור הזה.</li>';
+    $('disclosure').hidden = !affUsed;
+  }
+
+  function recentLabel(f){
+    if(f.mode==='pn') return f.pn;
+    return [f.make,f.model,f.year,f.part].filter(Boolean).join(' ');
+  }
+  function renderRecent(){
+    var box=$('recent'); box.innerHTML='';
+    recent.forEach(function(f,i){
+      var b=document.createElement('button');
+      b.type='button'; b.className='chip';
+      var span=document.createElement('span');
+      span.textContent=recentLabel(f);
+      if(f.mode==='pn') span.className='m';
+      b.appendChild(span);
+      b.addEventListener('click',function(){ applyForm(f); render(); persist(); });
+      box.appendChild(b);
+    });
+    $('recent-wrap').hidden = recent.length===0;
+  }
+  function remember(){
+    var f=readForm();
+    if(!recentLabel(f).trim()) return;
+    recent = recent.filter(function(x){return recentLabel(x)!==recentLabel(f)});
+    recent.unshift(f);
+    recent = recent.slice(0,6);
+    renderRecent();
+  }
+
+  /* ---------- offers ---------- */
+  function attr(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+  function opt(v,cur){return '<option value="'+v+'"'+(v===cur?' selected':'')+'>'+v+'</option>'}
+  function rowHtml(o,i){
+    return '<tr data-i="'+i+'">'+
+      '<td><input type="text" class="o-site" value="'+attr(o.site)+'" aria-label="אתר" placeholder="שם האתר"></td>'+
+      '<td><input type="number" class="o-price num" inputmode="decimal" min="0" step="any" value="'+attr(o.price)+'" aria-label="מחיר"></td>'+
+      '<td><select class="o-cur" aria-label="מטבע">'+['USD','EUR','GBP','ILS'].map(function(v){return opt(v,o.cur)}).join('')+'</select></td>'+
+      '<td><input type="number" class="o-ship num" inputmode="decimal" min="0" step="any" value="'+attr(o.ship)+'" aria-label="משלוח"></td>'+
+      '<td><select class="o-cond" aria-label="מצב">'+['חדש','משומש'].map(function(v){return opt(v,o.cond)}).join('')+'</select></td>'+
+      '<td class="landed"></td>'+
+      '<td><button type="button" class="x" aria-label="הסר הצעה">×</button></td></tr>';
+  }
+  function rate(cur){
+    if(cur==='USD') return +settings.usd||0;
+    if(cur==='EUR') return +settings.eur||0;
+    if(cur==='GBP') return +settings.gbp||0;
+    return 1;
+  }
+  var ils = new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0});
+  function landed(o){
+    var p = parseFloat(o.price);
+    if(!(p>0)) return null;
+    var s = parseFloat(o.ship)||0;
+    var base = (p+s)*rate(o.cur);
+    return base*(1+(+settings.duty||0)/100)*(1+(+settings.vat||0)/100);
+  }
+  function totals(){
+    var rows = $('offers').querySelectorAll('tr');
+    var vals = offers.map(landed);
+    var min = Infinity;
+    vals.forEach(function(v){ if(v!==null && v<min) min=v });
+    var many = vals.filter(function(v){return v!==null}).length>1;
+    rows.forEach(function(tr,i){
+      var cell = tr.querySelector('.landed');
+      var v = vals[i];
+      tr.classList.toggle('best', v!==null && many && v===min);
+      if(v===null){ cell.textContent='—'; return; }
+      cell.innerHTML='<strong>'+ils.format(v)+'</strong>'+((many && v===min)?'<span class="best-b">הזול ביותר</span>':'');
+    });
+  }
+  function renderOffers(){
+    $('offers').innerHTML = offers.map(rowHtml).join('');
+    $('offers-empty').hidden = offers.length>0;
+    totals();
+  }
+  $('offers').addEventListener('input',onRowChange);
+  $('offers').addEventListener('change',onRowChange);
+  function onRowChange(e){
+    var tr=e.target.closest('tr'); if(!tr) return;
+    var o=offers[+tr.dataset.i]; if(!o) return;
+    var t=e.target;
+    if(t.classList.contains('o-site')) o.site=t.value;
+    else if(t.classList.contains('o-price')) o.price=t.value;
+    else if(t.classList.contains('o-cur')) o.cur=t.value;
+    else if(t.classList.contains('o-ship')) o.ship=t.value;
+    else if(t.classList.contains('o-cond')) o.cond=t.value;
+    totals(); persist();
+  }
+  $('offers').addEventListener('click',function(e){
+    if(!e.target.classList.contains('x')) return;
+    var tr=e.target.closest('tr');
+    offers.splice(+tr.dataset.i,1);
+    renderOffers(); persist();
+  });
+  $('add').addEventListener('click',function(){
+    offers.push({site:'',price:'',cur:'USD',ship:'',cond:'חדש'});
+    renderOffers(); persist();
+    var inputs=$('offers').querySelectorAll('.o-site');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  });
+  $('clear').addEventListener('click',function(){
+    offers=[]; renderOffers(); persist();
+  });
+
+  /* ---------- settings ---------- */
+  var SET_IDS={usd:'r-usd',eur:'r-eur',gbp:'r-gbp',duty:'duty',vat:'vat'};
+  Object.keys(SET_IDS).forEach(function(key){
+    var el=$(SET_IDS[key]);
+    el.value = settings[key];
+    el.addEventListener('input',function(){
+      settings[key]=el.value; totals(); persist();
+    });
+  });
+
+  /* ---------- wiring ---------- */
+  $('f').addEventListener('submit',function(e){
+    e.preventDefault(); render(); remember(); persist();
+  });
+  ['m-pn','m-desc'].forEach(function(id){
+    $(id).addEventListener('change',function(){ syncMode(); render(); persist(); });
+  });
+  ['pn','strip','part','make','model','year'].forEach(function(id){
+    $(id).addEventListener('input',function(){ render(); });
+  });
+  $('regions').addEventListener('click',function(e){
+    var b=e.target.closest('.chip'); if(!b) return;
+    region=b.dataset.r;
+    $('regions').querySelectorAll('.chip').forEach(function(x){
+      x.setAttribute('aria-pressed', x===b ? 'true' : 'false');
+    });
+    render();
+  });
+  $('copy').addEventListener('click',function(){
+    var btn=$('copy'), txt=$('qtext').textContent;
+    function flash(m){ btn.textContent=m; setTimeout(function(){btn.textContent='העתק'},1600); }
+    function fallback(){
+      try{
+        var r=document.createRange(); r.selectNodeContents($('qtext'));
+        var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      }catch(e){}
+      flash('סומן, העתיקו ידנית');
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){flash('הועתק')},fallback);
+    } else { fallback(); }
+  });
+
+
+  /* ---------- vehicle lookup (data.gov.il) ---------- */
+  var RES_ID = '053cea08-09bc-40ec-8f7a-156f0677aff3';
+  var vehicle = null;
+  function apiUrl(num){
+    return 'https://data.gov.il/api/3/action/datastore_search?resource_id='+RES_ID+
+      '&filters='+encodeURIComponent(JSON.stringify({mispar_rechev:Number(num)}))+'&limit=1';
+  }
+  function status(msg,cls){ var el=$('plate-status'); el.textContent=msg; el.className=cls||''; }
+  function plain(s){ return String(s||'').replace(/[.'"׳״\-]/g,' ').replace(/\s+/g,' ').trim(); }
+  var MAKE_ALIAS = {'בי אם וו':'ב.מ.וו','ב מ וו':'ב.מ.וו','במוו':'ב.מ.וו'};
+  function makeFrom(name){
+    var n = plain(name), best='';
+    Object.keys(MAKE_ALIAS).forEach(function(a){ if(n.indexOf(a)!==-1) best=MAKE_ALIAS[a]; });
+    if(best) return best;
+    Object.keys(MAKES).forEach(function(m){
+      if(n.indexOf(plain(m))!==-1 && plain(m).length>best.length) best=m;
+    });
+    return best || String(name||'').trim();
+  }
+  function dt(s){ return s ? String(s).slice(0,10) : ''; }
+  function showVehicle(r){
+    var rows = [
+      ['יצרן', r.tozeret_nm],['דגם', r.kinuy_mishari || r.degem_nm],['שנת ייצור', r.shnat_yitzur],
+      ['רמת גימור', r.ramat_gimur],['קוד מנוע', r.degem_manoa, 'm', true],['סוג דלק', r.sug_delek_nm],
+      ['מספר שלדה (VIN)', r.misgeret, 'm', true],['צבע', r.tzeva_rechev],
+      ['צמיג קדמי', r.zmig_kidmi, 'm'],['צמיג אחורי', r.zmig_ahori, 'm'],
+      ['טסט אחרון', dt(r.mivchan_acharon_dt)],['תוקף רישיון', dt(r.tokef_dt)]
+    ];
+    var box=$('vcard'); box.innerHTML='';
+    rows.forEach(function(x){
+      if(x[1]===undefined || x[1]===null || String(x[1]).trim()==='') return;
+      var d=document.createElement('div'), t=document.createElement('dt'), v=document.createElement('dd');
+      t.textContent=x[0]; v.textContent=String(x[1]).trim(); if(x[2]) v.className='m';
+      if(x[3]){
+        var b=document.createElement('button'); b.type='button'; b.textContent='העתק';
+        b.addEventListener('click',function(){
+          if(navigator.clipboard&&navigator.clipboard.writeText){
+            navigator.clipboard.writeText(String(x[1]).trim()).then(function(){b.textContent='הועתק'; setTimeout(function(){b.textContent='העתק'},1400)},function(){});
+          }
+        });
+        v.appendChild(b);
+      }
+      d.appendChild(t); d.appendChild(v); box.appendChild(d);
+    });
+    box.hidden=false;
+  }
+  function applyRecord(r){
+    vehicle=r;
+    $('m-desc').checked=true; $('m-pn').checked=false; syncMode();
+    $('make').value = makeFrom(r.tozeret_nm);
+    $('model').value = String(r.kinuy_mishari || r.degem_nm || '').trim();
+    $('year').value = r.shnat_yitzur || '';
+    showVehicle(r);
+    status('נמצא: '+[String(r.tozeret_nm||'').trim(), String(r.kinuy_mishari||'').trim(), r.shnat_yitzur].filter(Boolean).join(' '), 'ok');
+    render(); persist();
+  }
+  function pickRecord(obj){
+    if(obj && obj.result && obj.result.records) return obj.result.records[0] || null;
+    if(obj && obj.records) return obj.records[0] || null;
+    if(obj && (obj.mispar_rechev || obj.tozeret_nm)) return obj;
+    return null;
+  }
+  function lookup(){
+    var num = $('plate').value.replace(/\D/g,'');
+    if(num.length<5 || num.length>8){ status('הזינו מספר רכב של 5 עד 8 ספרות.','err'); return; }
+    var url = apiUrl(num);
+    var link=$('api-link'); link.href=url; link.hidden=false; link.textContent='פתח את ה‑API למספר '+num;
+    status('מחפש…');
+    fetch(url).then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(j){
+      var rec = pickRecord(j);
+      if(!rec){ vehicle=null; $('vcard').hidden=true; status('המספר '+num+' לא נמצא במאגר הרכבים הפעילים. ייתכן שהרכב יצא מהכביש או שהמספר שגוי.','err'); return; }
+      applyRecord(rec);
+    }).catch(function(){
+      $('paste').open=true;
+      status('לא הצלחתי להתחבר ל‑API מהדפדפן. פתחו את הקישור למטה, העתיקו את התשובה והדביקו אותה בתיבה.','err');
+    });
+  }
+  $('plate-go').addEventListener('click',lookup);
+  $('plate').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); lookup(); } });
+  $('inc-eng').addEventListener('change',function(){ render(); });
+  $('paste-go').addEventListener('click',function(){
+    try{
+      var rec = pickRecord(JSON.parse($('paste-ta').value));
+      if(!rec) throw new Error('empty');
+      applyRecord(rec);
+    }catch(e){ status('הטקסט שהודבק אינו תשובת API תקינה או שלא נמצא בו רכב.','err'); }
+  });
+
+  $('found-pn').addEventListener('input',function(){ render(); });
+  document.querySelectorAll('input[name=qmode]').forEach(function(el){ el.addEventListener('change',function(){ render(); }); });
+
+  applyForm(saved.form || DEFAULT_FORM);
+  renderRecent();
+  renderOffers();
+  render();
+})();
+</script>
+<script>
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>
