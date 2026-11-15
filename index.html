@@ -48,6 +48,7 @@
   --good:#5CC48F;--warn:#E0A23B;--field:#0F1A21;color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 :root{color-scheme:light}
 body{
   background:var(--bg);color:var(--ink);
@@ -301,6 +302,11 @@ tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
     <button type="button" id="copy">העתק</button>
   </div>
   <p class="warn" id="warn" hidden></p>
+  <div class="row" id="tr-row" hidden style="margin-top:8px">
+    <button type="button" class="btn small" id="tr-btn">תרגם לאנגלית</button>
+    <span class="hint">תרגום אוטומטי חינמי. כדאי לבדוק שהמונח מתאים לחלק.</span>
+  </div>
+  <p class="hint" id="tr-msg" role="status" style="margin-top:8px"></p>
 
   <div class="panel" style="margin-top:14px">
     <ul class="sources" id="sources"></ul>
@@ -411,11 +417,18 @@ tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
   var ALL = {}; var k;
   for(k in PARTS) ALL[k]=PARTS[k];
   for(k in MAKES) ALL[k]=MAKES[k];
+  var EXTRA = {"דלת": "door", "מכסה מנוע": "hood", "מכסה תא מטען": "trunk lid", "תא מטען": "trunk", "כנף": "fender", "כנף קדמית": "front fender", "פגוש קדמי": "front bumper", "פגוש אחורי": "rear bumper", "גריל": "grille", "ספוילר": "spoiler", "חלון": "window", "מגבה חלון": "window regulator", "מנוע חלון": "window motor", "מנעול": "lock", "מנעול דלת": "door lock", "ידית דלת": "door handle", "ידית": "handle", "זכוכית": "glass", "שמשה": "windshield", "שמשה קדמית": "windshield", "מראה פנימית": "rear view mirror", "כיסוי מראה": "mirror cover", "מעמד": "mount", "מעמד גיר": "transmission mount", "גלגל": "wheel", "חישוק": "rim", "ג'נט": "rim", "צמיג": "tire", "צמיגים": "tires", "אומים": "lug nuts", "בורג": "bolt", "כבל": "cable", "כבל מצבר": "battery cable", "פיוז": "fuse", "ממסר": "relay", "ריליי": "relay", "נורה": "bulb", "נורות": "bulbs", "נורת קסנון": "xenon bulb", "בלם יד": "parking brake", "כבל בלם יד": "parking brake cable", "כבל מצמד": "clutch cable", "כבל גז": "throttle cable", "דוושה": "pedal", "דוושת בלם": "brake pedal", "דוושת מצמד": "clutch pedal", "משאבת בלם": "brake master cylinder", "צילינדר בלם": "brake cylinder", "בוסטר": "brake booster", "מגבר בלם": "brake booster", "מסנן": "filter", "פילטר": "filter", "שמן גיר": "transmission oil", "נוזל קירור": "coolant", "נוזל מגבים": "washer fluid", "מיכל התפשטות": "expansion tank", "צינור": "hose", "צינור קירור": "radiator hose", "מכסה רדיאטור": "radiator cap", "אגן שמן": "oil pan", "פקק שמן": "oil cap", "אטם מכסה שסתומים": "valve cover gasket", "שסתום": "valve", "שסתומים": "valves", "בוכנה": "piston", "גל זיזים": "camshaft", "גל ארכובה": "crankshaft", "מותח רצועה": "belt tensioner", "גלגלת": "pulley", "כבלי מצתים": "spark plug wires", "מצערת": "throttle body", "מכלול מצערת": "throttle body", "חיישן מצערת": "throttle position sensor", "חיישן טמפרטורה": "temperature sensor", "חיישן לחץ שמן": "oil pressure sensor", "חיישן גל ארכובה": "crankshaft sensor", "חיישן גל זיזים": "camshaft sensor", "חיישן מסה": "MAF sensor", "מד זרימת אוויר": "MAF sensor", "חיישן חניה": "parking sensor", "חיישן גשם": "rain sensor", "מחשב מנוע": "ECU", "יחידת בקרה": "control unit", "מודול": "module", "ערכת תיקון": "repair kit", "סט": "kit", "ערכה": "kit", "סט בלמים": "brake kit", "כרית אוויר": "airbag", "חגורת בטיחות": "seat belt", "מושב": "seat", "כיסא": "seat", "גלגל הגה": "steering wheel", "מד מהירות": "speedometer", "לוח מחוונים": "dashboard", "מחוונים": "instrument cluster", "רדיו": "radio", "מסך": "display", "מצלמה": "camera", "מצלמת רוורס": "backup camera", "אנטנה": "antenna", "רמקול": "speaker", "מזגן": "AC", "מאוורר מזגן": "AC fan", "מפוח": "blower motor", "מפוח מזגן": "blower motor", "מייבש מזגן": "AC drier", "מאייד": "evaporator", "גומיית דלת": "door seal", "כיסוי מנוע": "engine cover", "מגן תחתון": "under tray", "כיסוי גלגל": "wheel cover", "אטם שמן": "oil seal", "מפרק כדורי": "ball joint", "בולם גז": "gas strut", "בולם מכסה מנוע": "hood strut", "בולם תא מטען": "trunk strut", "תיבת הגה": "steering rack", "רק הגה": "steering rack", "מנוע": "engine", "גיר": "gearbox", "הגה": "steering", "עליון": "upper", "עליונה": "upper", "תחתון": "lower", "תחתונה": "lower", "פנימי": "inner", "חיצוני": "outer", "זוג": "pair", "חדש": "new", "חדשה": "new", "משומש": "used", "מקורי": "OEM", "תחליפי": "aftermarket", "פנס אחורי ימין": "tail light right", "פנס אחורי שמאל": "tail light left", "נורת בלם": "brake light bulb", "תאורה": "lighting", "מפסק": "switch", "מתג": "switch", "זרוע קדמית": "front control arm", "זרוע אחורית": "rear control arm", "גומי": "rubber", "בולם קדמי": "front shock absorber", "בולם אחורי": "rear shock absorber"};
+  var MODELS = {"קורולה": "Corolla", "יאריס": "Yaris", "קאמרי": "Camry", "ראב 4": "RAV4", "ראב4": "RAV4", "אוריס": "Auris", "אייגו": "Aygo", "פריוס": "Prius", "לנד קרוזר": "Land Cruiser", "היילקס": "Hilux", "סיוויק": "Civic", "אקורד": "Accord", "ג'אז": "Jazz", "ג'ז": "Jazz", "סי אר וי": "CR-V", "מזדה 3": "Mazda3", "מזדה 6": "Mazda6", "מזדה3": "Mazda3", "טוסון": "Tucson", "אלנטרה": "Elantra", "סנטה פה": "Santa Fe", "קונה": "Kona", "איוניק": "Ioniq", "סורנטו": "Sorento", "ספורטאז'": "Sportage", "פיקנטו": "Picanto", "ריו": "Rio", "סיד": "Ceed", "סיראטו": "Cerato", "נירו": "Niro", "סטוניק": "Stonic", "אוקטביה": "Octavia", "פאביה": "Fabia", "סופרב": "Superb", "קודיאק": "Kodiaq", "קארוק": "Karoq", "רפיד": "Rapid", "גולף": "Golf", "פולו": "Polo", "פאסאט": "Passat", "טיגואן": "Tiguan", "ג'טה": "Jetta", "טוראן": "Touran", "קאדי": "Caddy", "פנדה": "Panda", "דובלו": "Doblo", "טיפו": "Tipo", "500 אל": "500L", "קליאו": "Clio", "מגאן": "Megane", "קפצ'ור": "Captur", "פוקוס": "Focus", "פיאסטה": "Fiesta", "פומה": "Puma", "קוגה": "Kuga", "טרנזיט": "Transit", "קורסה": "Corsa", "אסטרה": "Astra", "מוקה": "Mokka", "סוויפט": "Swift", "איגניס": "Ignis", "ויטרה": "Vitara", "קשקאי": "Qashqai", "ג'וק": "Juke", "מיקרה": "Micra", "ליף": "Leaf", "לנסר": "Lancer", "אאוטלנדר": "Outlander", "פורסטר": "Forester", "אימפרזה": "Impreza", "ברלינגו": "Berlingo", "קקטוס": "Cactus", "דוסטר": "Duster", "סנדרו": "Sandero", "לוגן": "Logan", "מודל 3": "Model 3", "מודל s": "Model S", "מודל x": "Model X", "מודל y": "Model Y"};
+  for(k in EXTRA) ALL[k]=EXTRA[k];
+  for(k in MODELS) ALL[k]=MODELS[k];
   var KEYS = Object.keys(ALL).sort(function(a,b){return b.length-a.length});
   var KEYRE = KEYS.map(function(key){
     return {k:key, re:new RegExp('(^|[\\s,])ה?'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=$|[\\s,])','g')};
   });
 
+  var TR_KEY = 'halafim.tr';
+  var TR = {};
+  try{ TR = JSON.parse(localStorage.getItem(TR_KEY)||'{}')||{} }catch(e){ TR = {} }
   function norm(s){
     return String(s||'').replace(/[״“”]/g,'"').replace(/[׳‘’]/g,"'").replace(/\s+/g,' ').trim();
   }
@@ -425,8 +438,10 @@ tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
       t=t.replace(o.re,function(m,p){return p+ALL[o.k]+' '});
     });
     t=t.replace(/\s+/g,' ').trim();
+    t=t.replace(/[֐-׿][֐-׿'"]*/g,function(w){ return TR[w]||w; });
     var left=t.match(/[֐-׿][֐-׿'"]*/g)||[];
-    return {text:t,left:left};
+    var latin=t.replace(/[\u0590-\u05FF][\u0590-\u05FF'"]*/g,' ').replace(/\s+/g,' ').trim();
+    return {text:latin,left:left};
   }
 
   /* ---------- sources ---------- */
@@ -442,26 +457,16 @@ tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
       function(c){return 'https://www.ebay.de/sch/i.html?_nkw='+enc(c.q)}),
     src('eBay בריטניה','ebay.co.uk','eu','חלפים לרכבים אירופיים ויפניים, כולל משומשים.',
       function(c){return 'https://www.ebay.co.uk/sch/i.html?_nkw='+enc(c.q)}),
-    src('RockAuto','rockauto.com','us','קטלוג לפי דגם ומנוע. חלפים חדשים ואפטרמרקט.',
-      function(c){return c.mode==='pn' ? 'https://www.rockauto.com/en/partsearch/?partnum='+enc(c.q) : null}),
     src('Amazon ארה״ב','amazon.com','us','חלפים ואביזרים. יש סינון התאמה לפי רכב בעמוד התוצאות.',
       function(c){return 'https://www.amazon.com/s?k='+enc(c.q)}),
     src('Amazon גרמניה','amazon.de','eu','מבחר חלפים אירופי. שווה לבדוק אם המוכר שולח לישראל.',
       function(c){return 'https://www.amazon.de/s?k='+enc(c.q)}),
-    src('FCP Euro','fcpeuro.com','us','מתמחה ברכבים אירופיים: BMW, מרצדס, אאודי, פולקסווגן, וולוו.',null),
-    src('Pelican Parts','pelicanparts.com','us','פורשה, BMW, מרצדס ופולקסווגן, גם דגמים ותיקים.',null),
-    src('Autodoc','autodoc.co.uk','eu','אחד מקטלוגי האפטרמרקט הגדולים באירופה.',
-      function(c){return 'https://www.autodoc.co.uk/search?keyword='+enc(c.q)}),
     src('Mister-Auto','mister-auto.com','eu','קטלוג אירופי לחלפים חדשים לרכבים נפוצים.',null),
     src('Partsouq','partsouq.com','asia','חלפי מקור לרכבים יפניים וקוריאניים. עובד בעיקר עם מק״ט.',
       function(c){return c.mode==='pn' ? 'https://partsouq.com/en/search/all?q='+enc(c.q) : null}),
     src('Amayama','amayama.com','asia','חלפי מקור מיפן. עובד בעיקר עם מק״ט.',null),
     src('AliExpress','aliexpress.com','asia','מחירים נמוכים, איכות משתנה. מומלץ לקרוא ביקורות.',
       function(c){return 'https://www.aliexpress.com/wholesale?SearchText='+enc(c.q)}),
-    src('Alibaba','alibaba.com','asia','יצרנים וסיטונאים. מתאים לכמויות או לחלקים נדירים.',
-      function(c){return 'https://www.alibaba.com/trade/search?SearchText='+enc(c.q)}),
-    src('Google Shopping','google.com','global','השוואת מחירים בין חנויות שונות בעולם.',
-      function(c){return 'https://www.google.com/search?tbm=shop&q='+enc(c.q)})
   ];
   var REGION_LABEL = {us:'ארה״ב',eu:'אירופה',asia:'אסיה',global:'גלובלי'};
 
@@ -510,10 +515,11 @@ tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
       if(f.strip) pn = pn.replace(/[\s\-.]/g,'');
       return {mode:'pn', q:pn, left:[]};
     }
-    var part = translate(f.part), make = translate(f.make);
+    var part = translate(f.part), make = translate(f.make), mdl = translate(f.model);
     var eng = ($('inc-eng') && $('inc-eng').checked && vehicle && vehicle.degem_manoa) ? String(vehicle.degem_manoa).trim() : '';
-    var q = [make.text, norm(f.model), String(f.year).trim(), eng, part.text].filter(Boolean).join(' ');
+    var q = [make.text, mdl.text, String(f.year).trim(), eng, part.text].filter(Boolean).join(' ');
     baseQ = q;
+    if(f.part.trim() && !part.text){ return {mode:'desc', q:'', left:part.left.concat(make.left, mdl.left)}; }
     var fpn = ($('found-pn').value||'').trim();
     var qmEl = document.querySelector('input[name=qmode]:checked');
     var qm = qmEl ? qmEl.value : 'pn';
@@ -521,7 +527,7 @@ tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
       if(qm==='pn') return {mode:'pn', q:fpn, left:[]};
       if(qm==='both') q = q+' '+fpn;
     }
-    return {mode:'desc', q:q, left:part.left.concat(make.left)};
+    return {mode:'desc', q:q, left:part.left.concat(make.left, mdl.left)};
   }
 
 
@@ -597,19 +603,63 @@ tr.best td{background:color-mix(in srgb,var(--good) 12%,transparent)}
     } else { msg.textContent=txt; }
   });
 
+
+  /* ---------- free machine translation fallback (MyMemory) ---------- */
+  function mmTranslate(word){
+    var url = 'https://api.mymemory.translated.net/get?q='+encodeURIComponent(word)+'&langpair=he|en';
+    return fetch(url).then(function(r){
+      if(!r.ok) throw new Error('http '+r.status);
+      return r.json();
+    }).then(function(j){
+      var txt = j && j.responseData && j.responseData.translatedText;
+      if(!txt || String(j.responseStatus)!=='200' || /MYMEMORY|WARNING|QUERY LENGTH/i.test(txt)) throw new Error('bad');
+      txt = String(txt).replace(/[^\x20-\x7E]/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
+      if(!txt) throw new Error('empty');
+      return txt;
+    });
+  }
+  $('tr-btn').addEventListener('click',function(){
+    var c = build();
+    var words = (c.left||[]).filter(function(w,i,a){ return a.indexOf(w)===i; }).slice(0,6);
+    if(!words.length) return;
+    var btn=$('tr-btn'), msg=$('tr-msg');
+    btn.disabled=true; msg.textContent='מתרגם…';
+    Promise.all(words.map(function(w){
+      return mmTranslate(w).then(function(en){ return [w,en]; },function(){ return [w,null]; });
+    })).then(function(res){
+      var ok=[], bad=[];
+      res.forEach(function(x){ if(x[1]){ TR[x[0]]=x[1]; ok.push(x[0]+' ← '+x[1]); } else bad.push(x[0]); });
+      try{ localStorage.setItem(TR_KEY,JSON.stringify(TR)); }catch(e){}
+      var parts=[];
+      if(ok.length) parts.push('תורגם אוטומטית: '+ok.join(', ')+'. בדקו שהמונח מתאים.');
+      if(bad.length) parts.push('לא הצלחתי לתרגם: '+bad.join(', ')+'. כתבו אותם באנגלית.');
+      msg.textContent=parts.join(' ');
+      btn.disabled=false;
+      render();
+    });
+  });
+
   /* ---------- results ---------- */
   function render(){
     var c = build(); renderStep1();
+    $('tr-row').hidden = !(c.left && c.left.length);
     var tag=$('tag'), warn=$('warn'), list=$('sources');
     if(!c.q){
-      tag.hidden=true; warn.hidden=true;
-      list.innerHTML='<li class="empty">הזינו מק״ט או תיאור חלק כדי לקבל קישורי חיפוש.</li>';
+      tag.hidden=true;
+      if(c.left && c.left.length){
+        warn.hidden=false;
+        warn.textContent='לא ניתן לתרגם: '+c.left.join(', ')+'. האתרים בחו״ל לא מבינים עברית, ולכן לא שלחתי חיפוש. כתבו את שם החלק באנגלית (למשל brake pads) או נסו מילה אחרת.';
+        list.innerHTML='<li class="empty">כתבו את החלק באנגלית כדי לקבל קישורים.</li>';
+      } else {
+        warn.hidden=true;
+        list.innerHTML='<li class="empty">הזינו מק״ט או תיאור חלק כדי לקבל קישורי חיפוש.</li>';
+      }
       return;
     }
     tag.hidden=false; $('qtext').textContent=c.q;
     if(c.left.length){
       warn.hidden=false;
-      warn.textContent='לא תורגם: '+c.left.join(', ')+'. אתרים בחו״ל מבינים בעיקר אנגלית, אז כדאי לכתוב את המונחים האלה באנגלית.';
+      warn.textContent='הוסרו מהחיפוש כי לא תורגמו: '+c.left.join(', ')+'. האתרים בחו״ל לא מבינים עברית. כתבו את המילים האלה באנגלית.';
     } else { warn.hidden=true; }
 
     affUsed = false;
